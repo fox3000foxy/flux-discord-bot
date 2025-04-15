@@ -1,6 +1,6 @@
 # Flux Bot
 
-This is a Discord bot that interfaces with the Weights.gg Unofficial API to generate images based on user prompts.
+This is a Discord bot that interfaces with the [Weights.gg Unofficial API](https://github.com/fox3000foxy/weights.gg-api) to generate images based on user prompts.
 
 ## Features
 
