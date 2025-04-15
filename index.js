@@ -130,11 +130,11 @@ client.on('ready', async () => {
 client.on('interactionCreate', async interaction => {
     if (!interaction.isCommand()) return;
 
-    const allowedUserIds = ["724847846897221642", "1141909667790979082", "843808047042134026"];
-    if (!allowedUserIds.includes(interaction.user.id)) {
-        await interaction.reply({ content: 'Vous n\'êtes pas autorisé à utiliser ce bot ! Veuillez contacter <@724847846897221642> pour être ajouté à la liste blanche.', ephemeral: true });
-        return;
-    }
+    // const allowedUserIds = ["724847846897221642", "1141909667790979082", "843808047042134026"];
+    // if (!allowedUserIds.includes(interaction.user.id)) {
+    //     await interaction.reply({ content: 'Vous n\'êtes pas autorisé à utiliser ce bot ! Veuillez contacter <@724847846897221642> pour être ajouté à la liste blanche.', ephemeral: true });
+    //     return;
+    // }
 
     const { commandName } = interaction;
     const commandsPath = path.join(__dirname, 'commands');
