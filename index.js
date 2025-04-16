@@ -4,13 +4,7 @@ const path = require('node:path');
 require('dotenv').config();
 
 // Initialize Discord Client
-const client = new Client({
-    intents: [
-        GatewayIntentBits.Guilds,
-        GatewayIntentBits.GuildMessages,
-        GatewayIntentBits.MessageContent,
-    ],
-});
+const client = new Client({ intents: [] });
 
 // Store commands in a collection
 client.commands = new Collection();
