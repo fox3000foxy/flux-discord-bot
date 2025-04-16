@@ -37,7 +37,11 @@ async function registerCommands(client) {
     try {
         const commands = client.application?.commands;
         for (const command of client.commands.values()) {
-            await commands?.create(command.data.toJSON());
+            await commands?.create({
+                ...command.data.toJSON(), 
+                integration_types: [0, 1],
+                contexts: [0, 1, 2]
+            });
         }
         console.log('Successfully registered application commands.');
     } catch (error) {
