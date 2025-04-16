@@ -38,7 +38,7 @@ async function registerCommands(client) {
         const commands = client.application?.commands;
         for (const command of client.commands.values()) {
             await commands?.create({
-                ...command.data.toJSON(), 
+                ...command.data.toJSON(),
                 integration_types: [0, 1],
                 contexts: [0, 1, 2]
             });
@@ -58,20 +58,36 @@ client.on('ready', async () => {
 
 // Event: Interaction Create (Slash Commands)
 client.on('interactionCreate', async interaction => {
-    if (!interaction.isCommand()) return;
-    const command = client.commands.get(interaction.commandName);
+    if (interaction.isCommand()) {
+        const command = client.commands.get(interaction.commandName);
 
-    if (!command) {
-        console.error(`No command matching ${interaction.commandName} was found.`);
-        await interaction.reply({ content: 'Command not found!', ephemeral: true });
-        return;
-    }
+        if (!command) {
+            console.error(`No command matching ${interaction.commandName} was found.`);
+            await interaction.reply({ content: 'Command not found!', ephemeral: true });
+            return;
+        }
 
-    try {
-        await command.execute(interaction);
-    } catch (error) {
-        console.error(`Error executing ${interaction.commandName}:`, error);
-        await interaction.reply({ content: 'There was an error while executing this command!', ephemeral: true });
+        try {
+            await command.execute(interaction);
+        } catch (error) {
+            console.error(`Error executing ${interaction.commandName}:`, error);
+            await interaction.reply({ content: 'There was an error while executing this command!', ephemeral: true });
+        }
+    } else if (interaction.isAutocomplete()) {
+        const command = client.commands.get(interaction.commandName);
+
+        if (!command) {
+            console.error(`No command matching ${interaction.commandName} was found.`);
+            return;
+        }
+
+        try {
+            if (command.autocomplete) {
+                await command.autocomplete(interaction);
+            }
+        } catch (error) {
+            console.error(`Error executing autocomplete for ${interaction.commandName}:`, error);
+        }
     }
 });
 

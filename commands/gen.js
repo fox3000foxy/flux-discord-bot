@@ -17,7 +17,37 @@ module.exports = {
         .addStringOption(option =>
             option.setName('loraname')
                 .setDescription('The name of the LoRA to add')
-                .setRequired(false)),
+                .setRequired(false)
+                .setAutocomplete(false)), // Enable autocomplete
+    async autocomplete(interaction) {
+        const focusedValue = interaction.options.getFocused();
+        try {
+            const response = await fetch(`${API_URL}/search-loras?query=${focusedValue}`, {
+                headers: {
+                    'x-api-key': `${API_KEY}`,
+                },
+            });
+
+            if (!response.ok) {
+                console.error(`HTTP error! status: ${response.status}`);
+                return;
+            }
+
+            const loras = await response.json();
+
+            if (!Array.isArray(loras)) {
+                console.error('Invalid LoRA data:', loras);
+                return;
+            }
+
+            const filtered = loras.filter(lora => lora.name.startsWith(focusedValue));
+            await interaction.respond(
+                filtered.map(lora => ({ name: lora.name, value: lora.name })),
+            );
+        } catch (error) {
+            console.error("Autocomplete fetch error:", error);
+        }
+    },
     async execute(interaction) {
         const prompt = interaction.options.getString('prompt');
         const loraName = interaction.options.getString('loraname');
