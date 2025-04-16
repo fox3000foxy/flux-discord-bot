@@ -2,6 +2,9 @@
 
 This is a Discord bot that interfaces with the [Weights.gg Unofficial API](https://github.com/fox3000foxy/weights.gg-api) to generate images based on user prompts.
 
+![image](https://github.com/user-attachments/assets/d5809ab1-8aea-49fa-9003-af9c39fab815)
+
+
 ## Features
 
 -   **Image Generation:** Generates images based on prompts provided by Discord users.
