@@ -63,9 +63,13 @@ module.exports = {
             console.log('No LoRA name provided, skipping restriction check.');
         } else {
             const userId = interaction.user.id;
-            let allowedIds = restrictedLoras[loraName];
-            if(allowedIds) {
-                // Check if the user ID is in the allowed IDs for the given LoRA
+            let allowedIds = restrictedLoras[loraName.trim()] || null;
+            if (!allowedIds) {
+                // If the LoRA is not in the restrictions list, skip the check
+                console.log(`LoRA ${loraName} is not restricted, skipping check.`);
+            } else {
+                // If the LoRA is in the restrictions list, check if it has allowed IDs
+                console.log(`LoRA ${loraName} has restricted IDs: ${allowedIds}`);
                 if(!allowedIds.includes(userId)) {
                     // If the user ID is not in the allowed IDs, deny access
                     console.log(`User ${userId} is not allowed to use LoRA ${loraName}.`);
