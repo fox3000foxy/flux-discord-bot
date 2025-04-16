@@ -136,3 +136,4 @@ dist
 .pnp.*
 
 commands/restart.js
+restrictions.json
