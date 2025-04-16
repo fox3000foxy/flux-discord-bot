@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
+const { SlashCommandBuilder } = require('discord.js');
 const fetch = require('node-fetch');
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
@@ -23,35 +23,23 @@ module.exports = {
         const loraName = interaction.options.getString('loraname');
 
         if (prompt.length < 10) {
-            let errorEmbed = new EmbedBuilder()
-                .setColor(0xFF0000)
-                .setTitle('Error')
-                .setDescription('Prompt must be at least 10 characters long.');
-            await interaction.reply({ embeds: [errorEmbed] });
+            await interaction.reply({ content: 'Prompt must be at least 10 characters long.', ephemeral: true });
             return;
         }
 
-        // Initial reply with an embed
-        const embed = new EmbedBuilder()
-            .setColor(0x0099FF)
-            .setTitle('Image Generation')
-            .setDescription('Generating image...');
-
-        await interaction.reply({ embeds: [embed] });
+        // Initial reply
+        await interaction.reply({ content: 'Generating image...' });
 
         try {
             let apiUrl = `${API_URL}/generateImage?prompt=${encodeURIComponent(prompt)}`;
             if (loraName) {
                 apiUrl += `&loraName=${encodeURIComponent(loraName)}`;
-                embed.setDescription(`Generating image with LoRA: ${loraName}...`);
+                await interaction.editReply({ content: `Generating image with LoRA: ${loraName}...` });
             } else {
-                embed.setDescription('Generating image without LoRA...');
+                await interaction.editReply({ content: 'Generating image without LoRA...' });
             }
-            await interaction.editReply({ embeds: [embed] });
 
-            embed.setDescription('Image is in queue...');
-
-            await interaction.editReply({ embeds: [embed] });
+            await interaction.editReply({ content: 'Image is in queue...' });
 
             const response = await fetch(apiUrl, {
                 method: 'GET',
@@ -63,14 +51,13 @@ module.exports = {
             const data = await response.json();
 
             if (data.error) {
-                embed.setColor(0xFF0000).setDescription(`Error: ${data.error}`);
-                await interaction.editReply({ embeds: [embed] });
+                await interaction.editReply({ content: `Error: ${data.error}` });
                 return;
             }
 
             const { imageId, imageUrl } = data;
             console.log(data);
-            await updateStatus(interaction, imageId, imageUrl, embed, true);
+            await updateStatus(interaction, imageId, imageUrl, true);
 
         } catch (err) {
             let errorMessage = err.message;
@@ -82,13 +69,12 @@ module.exports = {
                 errorMessage = `An unexpected error occurred: ${err.message}`;
             }
             console.error('Fetch error: ', errorMessage);
-            embed.setColor(0xFF0000).setDescription(`An error occurred: ${errorMessage}`);
-            await interaction.editReply({ embeds: [embed] });
+            await interaction.editReply({ content: `An error occurred: ${errorMessage}` });
         }
     },
 };
 
-async function updateStatus(interaction, imageId, imageUrl, embed, firstCall = false) {
+async function updateStatus(interaction, imageId, imageUrl, firstCall = false) {
     try {
         const response = await fetch(`${API_URL}/status/${imageId}`, {
             method: 'GET',
@@ -102,33 +88,57 @@ async function updateStatus(interaction, imageId, imageUrl, embed, firstCall = f
 
         switch (status) {
             case "COMPLETED":
-                embed.setImage(imageUrl).setDescription(`Image generation complete!`);
-                await interaction.editReply({ embeds: [embed] });
+                try {
+                    const imageResponse = await fetch(imageUrl);
+                    const imageBuffer = await imageResponse.buffer();
+
+                    await interaction.editReply({
+                        content: 'Image generation complete!',
+                        files: [{
+                            attachment: imageBuffer,
+                            name: 'generated_image.png'
+                        }],
+                    });
+                } catch (fetchError) {
+                    console.error("Failed to fetch and attach image:", fetchError);
+                    await interaction.editReply({ content: `Image generation complete, but failed to attach image. Please check the URL manually: ${imageUrl}` });
+                }
             return;
             case "STARTING":
                 if (firstCall) {
-                    embed.setDescription('Image generation in progress...');
-                    await interaction.editReply({ embeds: [embed] });
+                    await interaction.editReply({ content: 'Image generation started...' });
                     lastModifiedDateCache = null;
                 }
             break;
             case "PENDING":
                 if (lastModifiedDate !== lastModifiedDateCache) {
                     lastModifiedDateCache = lastModifiedDate;
-                    embed.setImage(`${imageUrl}?status=${status}&randomHash=${Math.random()}`);
-                    await interaction.editReply({ embeds: [embed] });
+                    try {
+                        const imageResponse = await fetch(imageUrl);
+                        const imageBuffer = await imageResponse.buffer();
+
+                        await interaction.editReply({
+                            content: 'Image generation in progress...',
+                            files: [{
+                                attachment: imageBuffer,
+                                name: 'generated_image.png'
+                            }],
+                        });
+                    } catch (fetchError) {
+                        console.error("Failed to fetch and attach image:", fetchError);
+                        await interaction.editReply({ content: `Image generation in progress...` });
+                    }
                 }
             break;
         }
 
         if (status !== "COMPLETED") {
             await sleep(100);
-            await updateStatus(interaction, imageId, imageUrl, embed);
+            await updateStatus(interaction, imageId, imageUrl);
             return;
         }
     } catch (error) {
         console.error("Status update error:", error);
-        embed.setColor(0xFF0000).setDescription("Failed to update image status.");
-        await interaction.editReply({ embeds: [embed] });
+        await interaction.editReply({ content: "Failed to update image status." });
     }
 }
