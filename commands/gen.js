@@ -4,6 +4,7 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
 
 const API_URL = process.env.API_URL;
 const API_KEY = process.env.API_KEY;
+let lastModifiedDateCache = null;
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -108,11 +109,15 @@ async function updateStatus(interaction, imageId, imageUrl, embed, firstCall = f
                 if (firstCall) {
                     embed.setDescription('Image generation in progress...');
                     await interaction.editReply({ embeds: [embed] });
+                    lastModifiedDateCache = null;
                 }
             break;
             case "PENDING":
-                embed.setImage(`${imageUrl}?status=${status}&randomHash=${lastModifiedDate}`);
-                await interaction.editReply({ embeds: [embed] });
+                if (lastModifiedDate !== lastModifiedDateCache) {
+                    lastModifiedDateCache = lastModifiedDate;
+                    embed.setImage(`${imageUrl}?status=${status}&randomHash=${Math.random()}`);
+                    await interaction.editReply({ embeds: [embed] });
+                }
             break;
         }
 
