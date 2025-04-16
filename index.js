@@ -56,21 +56,9 @@ client.on('ready', async () => {
     await registerCommands(client);
 });
 
-// Middleware: Check if user is allowed to use the bot
-function isUserAllowed(userId) {
-    const allowedUserIds = ["724847846897221642", "1141909667790979082", "843808047042134026"];
-    return allowedUserIds.includes(userId);
-}
-
 // Event: Interaction Create (Slash Commands)
 client.on('interactionCreate', async interaction => {
     if (!interaction.isCommand()) return;
-
-    // if (!isUserAllowed(interaction.user.id)) {
-    //     await interaction.reply({ content: 'You are not authorized to use this bot! Please contact <@724847846897221642> to be added to the whitelist.', ephemeral: true });
-    //     return;
-    // }
-
     const command = client.commands.get(interaction.commandName);
 
     if (!command) {
@@ -84,13 +72,6 @@ client.on('interactionCreate', async interaction => {
     } catch (error) {
         console.error(`Error executing ${interaction.commandName}:`, error);
         await interaction.reply({ content: 'There was an error while executing this command!', ephemeral: true });
-    }
-});
-
-// Event: Message Create (for simple text commands)
-client.on('messageCreate', msg => {
-    if (msg.content === 'ping') {
-        msg.reply('Pong!');
     }
 });
 
