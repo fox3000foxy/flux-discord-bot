@@ -49,7 +49,7 @@ module.exports = {
         }
     },
     async execute(interaction) {
-        const prompt = interaction.options.getString('prompt');
+        const prompt = "IMG_5678.HEIC," + interaction.options.getString('prompt');
         const loraName = interaction.options.getString('loraname');
 
         if (prompt.length < 10) {
