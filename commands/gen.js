@@ -1,5 +1,7 @@
 const { SlashCommandBuilder } = require('discord.js');
 const fetch = require('node-fetch');
+const fs = require('fs');
+const path = require('path');
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
 const API_URL = process.env.API_URL;
@@ -53,20 +55,24 @@ module.exports = {
         const loraName = interaction.options.getString('loraname');
 
         //EXCEPTIONAL PROHIBITION
-        const restrictedLoras = JSON.parse(fs.readFileSync('./restrictons.json', 'utf8').toString());
+        const restrictedLoras = JSON.parse(fs.readFileSync(path.join(__dirname,'..','/restrictions.json'), 'utf8').toString());
 
-        const userId = interaction.user.id;
-        let restricted = restrictedLoras[userId] || restrictedLoras["default"];
-
-        if (Object.keys(restrictedLoras).includes(userId)) {
-            restricted = restrictedLoras[userId];
+        if (!loraName) {
+            // If no LoRA name is provided, skip the check
+            // and proceed with image generation
+            console.log('No LoRA name provided, skipping restriction check.');
         } else {
-            restricted = restrictedLoras["default"];
-        }
-
-        if (restricted.includes(loraName)) {
-            await interaction.reply({ content: 'This LoRA is disabled for you.', ephemeral: true });
-            return;
+            const userId = interaction.user.id;
+            let allowedIds = restrictedLoras[loraName];
+            if(allowedIds) {
+                // Check if the user ID is in the allowed IDs for the given LoRA
+                if(!allowedIds.includes(userId)) {
+                    // If the user ID is not in the allowed IDs, deny access
+                    console.log(`User ${userId} is not allowed to use LoRA ${loraName}.`);
+                    await interaction.reply({ content: `You are not allowed to use this LoRA.`, ephemeral: true });
+                    return;
+                }
+            }
         }
         //END OF EXCEPTIONAL PROHIBITION
 
