@@ -52,6 +52,24 @@ module.exports = {
         const prompt = "IMG_5678.HEIC," + interaction.options.getString('prompt');
         const loraName = interaction.options.getString('loraname');
 
+        //EXCEPTIONAL PROHIBITION
+        const restrictedLoras = JSON.parse(fs.readFileSync('./restrictons.json', 'utf8').toString());
+
+        const userId = interaction.user.id;
+        let restricted = restrictedLoras[userId] || restrictedLoras["default"];
+
+        if (Object.keys(restrictedLoras).includes(userId)) {
+            restricted = restrictedLoras[userId];
+        } else {
+            restricted = restrictedLoras["default"];
+        }
+
+        if (restricted.includes(loraName)) {
+            await interaction.reply({ content: 'This LoRA is disabled for you.', ephemeral: true });
+            return;
+        }
+        //END OF EXCEPTIONAL PROHIBITION
+
         if (prompt.length < 10) {
             await interaction.reply({ content: 'Prompt must be at least 10 characters long.', ephemeral: true });
             return;
