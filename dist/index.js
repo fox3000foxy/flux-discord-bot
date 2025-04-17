@@ -95,21 +95,23 @@ client.on('ready', async () => {
 client.on('interactionCreate', async (interaction) => {
     if (interaction.isCommand()) {
         const command = client.commands.get(interaction.commandName);
-        const blacklistedIds = await (0, node_fetch_1.default)('https://aventuros.fr/api/discord/blacklistbot/list', {
-            headers: {
-                'Authorization': 'aQ7V6EL3wbzFLUx0mWoELwlncwTpfSp4'
-            }
-        })
-            .then(response => response.json())
-            .catch(error => {
-            console.error(error);
-            return [];
-        });
-        if (blacklistedIds.includes(interaction.user.id)) {
-            return interaction.reply({
-                content: "🔧 The bot is currently in maintenance. Please try again later.",
-                ephemeral: true
+        if (process.env.BLACKLIST_KEY) {
+            const blacklistedIds = await (0, node_fetch_1.default)('https://aventuros.fr/api/discord/blacklistbot/list', {
+                headers: {
+                    'Authorization': process.env.BLACKLIST_KEY
+                }
+            })
+                .then(response => response.json())
+                .catch(error => {
+                console.error(error);
+                return [];
             });
+            if (blacklistedIds.includes(interaction.user.id)) {
+                return interaction.reply({
+                    content: "🔧 The bot is currently in maintenance. Please try again later.",
+                    ephemeral: true
+                });
+            }
         }
         if (!command) {
             console.error(`No command matching ${interaction.commandName} was found.`);
