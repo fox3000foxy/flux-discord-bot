@@ -57,7 +57,8 @@ async function loadCommands(client) {
     const commandFiles = fs.readdirSync(commandsPath).filter(file => file.endsWith('.ts'));
     for (const file of commandFiles) {
         const filePath = path.join(commandsPath, file);
-        const command = require(filePath).default;
+        const fileContent = fs.readFileSync(filePath, 'utf-8');
+        const command = JSON.parse(fileContent);
         if ('data' in command && 'execute' in command) {
             client.commands.set(command.data.name, command);
         }
