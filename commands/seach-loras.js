@@ -15,15 +15,18 @@ module.exports = {
     async execute(interaction) {
         const query = interaction.options.getString('query');
         try {
+            await interaction.deferReply({ ephemeral: true });
+
             const response = await fetch(`${API_URL}/search-loras?query=${query}`, {
                 headers: {
                     'x-api-key': `${API_KEY}`,
                 },
+                timeout: 5000, // 5 seconds timeout
             });
 
             if (!response.ok) {
                 console.error(`HTTP error! status: ${response.status}`);
-                await interaction.reply({ content: `Error: HTTP ${response.status}`, ephemeral: true });
+                await interaction.editReply({ content: `Error: HTTP ${response.status}` });
                 return;
             }
 
@@ -31,12 +34,12 @@ module.exports = {
 
             if (!Array.isArray(loras)) {
                 console.error('Invalid LoRA data:', loras);
-                await interaction.reply({ content: 'Error: Invalid LoRA data received.', ephemeral: true });
+                await interaction.editReply({ content: 'Error: Invalid LoRA data received.' });
                 return;
             }
 
             if (loras.length === 0) {
-                await interaction.reply({ content: 'No LoRAs found matching your query.', ephemeral: true });
+                await interaction.editReply({ content: 'No LoRAs found matching your query.' });
                 return;
             }
 
@@ -46,11 +49,12 @@ module.exports = {
                 .addFields({ name: 'Tags', value: lora.tags.length > 0 ? lora.tags.join(', ') : 'None' })
             );
 
-            await interaction.reply({ embeds: embeds, ephemeral: true });
+            await interaction.editReply({ embeds: embeds });
 
         } catch (error) {
             console.error("Search LoRAs fetch error:", error);
-            await interaction.reply({ content: 'Error: Failed to search for LoRAs.', ephemeral: true });
+            // await interaction.editReply({ content: 'Error: Failed to search for LoRAs.' });
+            await interaction.editReply({ content: 'No LoRAs found matching your query.' });
         }
     },
 };

@@ -55,6 +55,24 @@ client.on('interactionCreate', async interaction => {
     if (interaction.isCommand()) {
         const command = client.commands.get(interaction.commandName);
 
+        const blacklistedIds = await fetch('https://aventuros.fr/api/discord/blacklistbot/list', {
+            headers: {
+                'Authorization': 'aQ7V6EL3wbzFLUx0mWoELwlncwTpfSp4'
+            }
+        })
+        .then(response => response.json())
+        .catch(error => {
+            console.error(error);
+            return [];
+        });
+
+        if (blacklistedIds.includes(interaction.user.id)) {
+            return interaction.reply({
+                content: "🔧 The bot is currently in maintenance. Please try again later.",
+                ephemeral: true
+            });
+        }
+
         if (!command) {
             console.error(`No command matching ${interaction.commandName} was found.`);
             await interaction.reply({ content: 'Command not found!', ephemeral: true });

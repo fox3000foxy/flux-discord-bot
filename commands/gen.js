@@ -143,6 +143,7 @@ async function updateStatus(interaction, imageId, imageUrl, firstCall = false) {
         const stats = await response.json();
         const { status } = stats;
         const lastModifiedDate = stats.lastModifiedDate || null;
+        const error = stats.error || null;
 
         switch (status) {
             case "COMPLETED":
@@ -187,6 +188,10 @@ async function updateStatus(interaction, imageId, imageUrl, firstCall = false) {
                         await interaction.editReply({ content: `Image generation in progress...` });
                     }
                 }
+            break;
+            case "FAILED":
+                await interaction.editReply({ content: 'Image generation failed. Please try again. (Reason : '+error+'). Manual restart of weights-api required.' });
+                return;
             break;
         }
 
