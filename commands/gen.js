@@ -190,7 +190,7 @@ async function updateStatus(interaction, imageId, imageUrl, firstCall = false) {
                 }
             break;
             case "FAILED":
-                await interaction.editReply({ content: 'Image generation failed. Please try again. (Reason : '+error+'). Manual restart of weights-api required.' });
+                await interaction.editReply({ content: 'Image generation failed. Please try again. (Reason : '+error+').' });
                 return;
             break;
         }
