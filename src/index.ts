@@ -33,8 +33,7 @@ async function loadCommands(client: Client): Promise<void> {
 
     for (const file of commandFiles) {
         const filePath = path.join(commandsPath, file);
-        const fileContent = fs.readFileSync(filePath, 'utf-8');
-        const command = JSON.parse(fileContent);
+        const command = require(filePath)?.default || require(filePath);
 
         if ('data' in command && 'execute' in command) {
             client.commands.set(command.data.name, command);
