@@ -101,8 +101,8 @@ client.on('interactionCreate', async (interaction) => {
                     'Authorization': process.env.BLACKLIST_KEY
                 }
             })
-                .then(response => response.json())
-                .catch(error => {
+                .then((response) => response.json())
+                .catch((error) => {
                 console.error(error);
                 return [];
             });

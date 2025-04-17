@@ -80,8 +80,8 @@ client.on('interactionCreate', async (interaction: Interaction) => {
                     'Authorization': process.env.BLACKLIST_KEY
                 }
             })
-            .then(response => response.json())
-            .catch(error => {
+            .then((response: { json: () => any; }) => response.json())
+            .catch((error: any) => {
                 console.error(error);
                 return [];
             });
@@ -93,7 +93,7 @@ client.on('interactionCreate', async (interaction: Interaction) => {
                 });
             }
         }
-        
+
         if (!command) {
             console.error(`No command matching ${interaction.commandName} was found.`);
             await interaction.reply({ content: 'Command not found!', ephemeral: true });
