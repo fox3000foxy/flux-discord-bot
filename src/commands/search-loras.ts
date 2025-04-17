@@ -11,7 +11,7 @@ interface LoraData {
     tags: string[];
 }
 
-const command: Command = {
+const command = {
     //@ts-ignore
     data: new SlashCommandBuilder()
         .setName('search-loras')

@@ -95,7 +95,7 @@ async function updateStatus(
     }
 }
 
-const command: Command = {
+const command = {
     //@ts-ignore
     data: new SlashCommandBuilder()
         .setName('gen')

@@ -5,7 +5,7 @@ import { Command } from '../types';
 const API_URL = process.env.API_URL;
 const API_KEY = process.env.API_KEY;
 
-const command: Command = {
+const command = {
     data: new SlashCommandBuilder()
         .setName('quota')
         .setDescription('Fetches the quota information.'),

@@ -28,12 +28,12 @@ client.commands = new Collection<string, Command>();
 
 // Load commands from files
 async function loadCommands(client: Client): Promise<void> {
-    const commandsPath = path.join(__dirname, '..', 'commands');
+    const commandsPath = path.join(__dirname, 'commands');
     const commandFiles = fs.readdirSync(commandsPath).filter(file => file.endsWith('.ts'));
 
     for (const file of commandFiles) {
         const filePath = path.join(commandsPath, file);
-        const command = require(filePath) as Command;
+        const command = require(filePath).default;
 
         if ('data' in command && 'execute' in command) {
             client.commands.set(command.data.name, command);
