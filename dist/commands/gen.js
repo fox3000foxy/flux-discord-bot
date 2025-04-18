@@ -53,7 +53,8 @@ async function updateStatus(interaction, imageId, imageUrl, firstCall = false) {
             },
         });
         const stats = await response.json();
-        const { status, lastModifiedDate, error } = stats;
+        const { status, error } = stats;
+        const lastModifiedDate = stats.lastModifiedDate || null;
         switch (status) {
             case "COMPLETED":
                 try {
