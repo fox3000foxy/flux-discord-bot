@@ -78,6 +78,9 @@ async function updateStatus(interaction, imageId, imageUrl, firstCall = false) {
                     lastModifiedDateCache = null;
                 }
                 break;
+            case "QUEUED":
+                await interaction.editReply({ content: 'Image is in queue' });
+                break;
             case "PENDING":
                 if (lastModifiedDate !== lastModifiedDateCache) {
                     if (lastModifiedDate !== undefined) {
@@ -177,12 +180,11 @@ const command = {
             let apiUrl = `${API_URL}/generateImage?prompt=${encodeURIComponent(prompt)}`;
             if (loraName) {
                 apiUrl += `&loraName=${encodeURIComponent(loraName)}`;
-                await interaction.editReply({ content: `Generating image with LoRA: ${loraName}...` });
+                // await interaction.editReply({ content: `Generating image with LoRA: ${loraName}...` });
             }
             else {
-                await interaction.editReply({ content: 'Generating image without LoRA...' });
+                // await interaction.editReply({ content: 'Generating image without LoRA...' });
             }
-            await interaction.editReply({ content: 'Image is in queue...' });
             const response = await (0, node_fetch_1.default)(apiUrl, {
                 method: 'GET',
                 headers: {
