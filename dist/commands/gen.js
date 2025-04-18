@@ -127,35 +127,10 @@ const command = {
         .setRequired(true))
         .addStringOption(option => option.setName('loraname')
         .setDescription('The name of the LoRA to add')
-        .setRequired(false)
-        .setAutocomplete(true)),
-    async autocomplete(interaction) {
-        const focusedValue = interaction.options.getFocused();
-        try {
-            const response = await (0, node_fetch_1.default)(`${API_URL}/search-loras?query=${focusedValue}`, {
-                headers: {
-                    'x-api-key': `${API_KEY}`,
-                },
-            });
-            if (!response.ok) {
-                console.error(`HTTP error! status: ${response.status}`);
-                return;
-            }
-            const loras = await response.json();
-            if (!Array.isArray(loras)) {
-                console.error('Invalid LoRA data:', loras);
-                return;
-            }
-            const filtered = loras.filter(lora => lora.name.toLowerCase().startsWith(focusedValue.toLowerCase()));
-            await interaction.respond(filtered.map(lora => ({ name: lora.name, value: lora.name })));
-        }
-        catch (error) {
-            console.error("Autocomplete fetch error:", error);
-        }
-    },
+        .setRequired(false)),
     async execute(interaction) {
         //@ts-ignore
-        const prompt = "IMG_5678.HEIC," + interaction.options.getString('prompt', true);
+        const prompt = "IMG_5678.HEIC, " + interaction.options.getString('prompt', true);
         //@ts-ignore
         const loraName = interaction.options.getString('loraname');
         const restrictedLoras = JSON.parse(fs.readFileSync(path.join(__dirname, '..', '..', 'restrictions.json'), 'utf8'));
