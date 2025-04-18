@@ -2,7 +2,6 @@ import { SlashCommandBuilder, CommandInteraction, AutocompleteInteraction } from
 import fetch from 'node-fetch';
 import * as fs from 'fs';
 import * as path from 'path';
-import { Command } from '../types';
 
 const sleep = (ms: number) => new Promise(r => setTimeout(r, ms));
 const API_URL = process.env.API_URL;
