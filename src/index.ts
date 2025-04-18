@@ -37,6 +37,7 @@ async function loadCommands(client: Client): Promise<void> {
 
         if ('data' in command && 'execute' in command) {
             client.commands.set(command.data.name, command);
+            console.log(`Loaded command: ${command.data.name}`);
         } else {
             console.warn(`[WARNING] The command at ${filePath} is missing a required "data" or "execute" property.`);
         }

@@ -28,8 +28,8 @@ async function updateStatus(
             },
         });
         const stats: ImageStatus = await response.json();
-        const { status, lastModifiedDate, error } = stats;
-        console.log(stats)
+        const { status, error } = stats;
+        const lastModifiedDate = stats.lastModifiedDate || null;
 
         switch (status) {
             case "COMPLETED":
