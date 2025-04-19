@@ -51,7 +51,7 @@ const config = {
 };
 // Initialize Discord Client
 const client = new discord_js_1.Client({ intents: [] });
-const api = new weights_api_1.WeightsApi(config.API_KEY);
+const api = new weights_api_1.WeightsApi(config.API_KEY, config.API_URL);
 // Store commands in a collection
 client.commands = new discord_js_1.Collection();
 // Load commands from files

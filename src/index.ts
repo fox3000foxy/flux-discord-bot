@@ -23,7 +23,7 @@ const config: Config = {
 
 // Initialize Discord Client
 const client = new Client({ intents: [] });
-const api = new WeightsApi(config.API_KEY);
+const api = new WeightsApi(config.API_KEY, config.API_URL);
 
 // Store commands in a collection
 client.commands = new Collection<string, Command>();

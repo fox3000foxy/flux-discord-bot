@@ -19,24 +19,16 @@ const restrictedLoras: Restrictions = JSON.parse(
 );
 
 async function updateStatus(
+  status: string,
   interaction: CommandInteraction,
   imageId: string,
-  api: WeightsApi,
-  imageUrl: string,
   firstCall: boolean = false,
 ): Promise<void> {
-  let lastModifiedDateCache: string | null = null;
-
   try {
-    const stats = await api.getStatus({ imageId });
-    console.log("Image status:", stats);
-    const { status } = stats;
-    const lastModifiedDate = stats.lastModifiedDate || null;
-    const error = stats.error || null;
-
     switch (status) {
       case "COMPLETED":
         try {
+          const imageUrl = process.env.API_URL + "/" + imageId + ".jpg";
           const imageResponse = await fetch(imageUrl);
           const arrayBuffer = await imageResponse.arrayBuffer();
           const imageBuffer = Buffer.from(arrayBuffer);
@@ -52,6 +44,7 @@ async function updateStatus(
           });
         } catch (fetchError) {
           console.error("Failed to fetch and attach image:", fetchError);
+          const imageUrl = process.env.API_URL + "/" + imageId;
           await interaction.editReply({
             content: `Image generation complete, but failed to attach image. Please check the URL manually: ${imageUrl}`,
           });
@@ -63,7 +56,6 @@ async function updateStatus(
           await interaction.editReply({
             content: "Image generation started...",
           });
-          lastModifiedDateCache = null;
         }
         break;
 
@@ -72,38 +64,28 @@ async function updateStatus(
         break;
 
       case "PENDING":
-        if (lastModifiedDate !== lastModifiedDateCache) {
-          if (lastModifiedDate !== undefined) {
-            lastModifiedDateCache = lastModifiedDate;
-          }
-          try {
-            const imageResponse = await fetch(imageUrl);
-            const arrayBuffer = await imageResponse.arrayBuffer();
-            const imageBuffer = Buffer.from(arrayBuffer);
+        try {
+          const imageUrl = process.env.API_URL + "/" + imageId + ".jpg";
+          const imageResponse = await fetch(imageUrl);
+          const arrayBuffer = await imageResponse.arrayBuffer();
+          const imageBuffer = Buffer.from(arrayBuffer);
 
-            await interaction.editReply({
-              content: "Image generation in progress...",
-              files: [
-                {
-                  attachment: imageBuffer,
-                  name: "generated_image.png",
-                },
-              ],
-            });
-          } catch (fetchError) {
-            console.error("Failed to fetch and attach image:", fetchError);
-            await interaction.editReply({
-              content: `Image generation in progress...`,
-            });
-          }
+          await interaction.editReply({
+            content: "Image generation in progress...",
+            files: [
+              {
+                attachment: imageBuffer,
+                name: "generated_image.png",
+              },
+            ],
+          });
+        } catch (fetchError) {
+          console.error("Failed to fetch and attach image:", fetchError);
+          await interaction.editReply({
+            content: `Image generation in progress...`,
+          });
         }
         break;
-
-      case "FAILED":
-        await interaction.editReply({
-          content: `Image generation failed. Please try again. (Reason : ${error}).`,
-        });
-        return;
     }
   } catch (error) {
     console.error("Status update error:", error);
@@ -161,21 +143,13 @@ const command = {
     await interaction.reply({ content: "Generating image..." });
 
     try {
-      const data = await api.generateProgressiveImage(
+      await api.generateProgressiveImage(
         {
-          query: prompt,
+          prompt: prompt,
           loraName: loraName,
         },
-        () => updateStatus(interaction, data.imageId, api, data.imageUrl, true),
+        (status, data) => updateStatus(status, interaction, data.imageId, true),
       );
-
-      if ("error" in data) {
-        await interaction.editReply({ content: `Error: ${data.error}` });
-        return;
-      }
-
-      // const { imageId, imageUrl } = data;
-      // await updateStatus(interaction, imageId, api, imageUrl, true);
     } catch (err: Error | unknown) {
       if (err instanceof Error) {
         let errorMessage = err.message;
