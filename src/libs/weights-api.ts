@@ -157,7 +157,10 @@ export class WeightsApi {
     const { imageId } = await this.generateImage(params);
     const statusResponse = await this.getStatus({ imageId });
     const { status } = statusResponse;
-    callback(status, { imageId });
+    if(status === "COMPLETED") {
+      callback(status, { imageId });
+      return statusResponse;
+    }
     let oldModifiedDate = null;
     while (true) {
       await new Promise((resolve) => setTimeout(resolve, 100)); // Wait for 100 milliseconds
