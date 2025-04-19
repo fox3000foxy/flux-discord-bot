@@ -37,11 +37,13 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const discord_js_1 = require("discord.js");
+const weights_api_1 = require("./libs/weights-api");
 const fs = __importStar(require("node:fs"));
 const path = __importStar(require("node:path"));
 const node_fetch_1 = __importDefault(require("node-fetch"));
 const dotenv_1 = __importDefault(require("dotenv"));
 dotenv_1.default.config();
+process.env.WEIGHTS_UNOFFICIAL_ENDPOINT = process.env.API_URL;
 const config = {
     DISCORD_TOKEN: process.env.DISCORD_TOKEN || "",
     API_URL: process.env.API_URL || "",
@@ -49,6 +51,7 @@ const config = {
 };
 // Initialize Discord Client
 const client = new discord_js_1.Client({ intents: [] });
+const api = new weights_api_1.WeightsApi(config.API_KEY);
 // Store commands in a collection
 client.commands = new discord_js_1.Collection();
 // Load commands from files
@@ -128,7 +131,7 @@ client.on("interactionCreate", async (interaction) => {
             return;
         }
         try {
-            await command.execute(interaction);
+            await command.execute(interaction, api);
         }
         catch (error) {
             console.error(`Error executing ${interaction.commandName}:`, error);

@@ -3,10 +3,14 @@ import {
   AutocompleteInteraction,
   SlashCommandBuilder,
 } from "discord.js";
+import { WeightsApi } from "./libs/weights-api";
 
 export interface Command {
   data: SlashCommandBuilder;
-  execute: (interaction: CommandInteraction) => Promise<void>;
+  execute: (
+    interaction: CommandInteraction,
+    api: WeightsApi | null,
+  ) => Promise<void>;
   autocomplete?: (interaction: AutocompleteInteraction) => Promise<void>;
 }
 

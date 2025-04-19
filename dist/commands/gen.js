@@ -32,27 +32,15 @@ var __importStar = (this && this.__importStar) || (function () {
         return result;
     };
 })();
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 const discord_js_1 = require("discord.js");
-const node_fetch_1 = __importDefault(require("node-fetch"));
 const fs = __importStar(require("fs"));
 const path = __importStar(require("path"));
-const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
-const API_URL = process.env.API_URL;
-const API_KEY = process.env.API_KEY;
-let lastModifiedDateCache = null;
-async function updateStatus(interaction, imageId, imageUrl, firstCall = false) {
+const restrictedLoras = JSON.parse(fs.readFileSync(path.join(__dirname, "..", "..", "restrictions.json"), "utf8"));
+async function updateStatus(interaction, imageId, api, imageUrl, firstCall = false) {
+    let lastModifiedDateCache = null;
     try {
-        const response = await (0, node_fetch_1.default)(`${API_URL}/status/${imageId}`, {
-            method: "GET",
-            headers: {
-                "x-api-key": `${API_KEY}`,
-            },
-        });
-        const stats = await response.json();
+        const stats = await api.getStatus({ imageId });
         console.log("Image status:", stats);
         const { status } = stats;
         const lastModifiedDate = stats.lastModifiedDate || null;
@@ -60,8 +48,9 @@ async function updateStatus(interaction, imageId, imageUrl, firstCall = false) {
         switch (status) {
             case "COMPLETED":
                 try {
-                    const imageResponse = await (0, node_fetch_1.default)(imageUrl);
-                    const imageBuffer = await imageResponse.buffer();
+                    const imageResponse = await fetch(imageUrl);
+                    const arrayBuffer = await imageResponse.arrayBuffer();
+                    const imageBuffer = Buffer.from(arrayBuffer);
                     await interaction.editReply({
                         content: "Image generation complete!",
                         files: [
@@ -96,8 +85,9 @@ async function updateStatus(interaction, imageId, imageUrl, firstCall = false) {
                         lastModifiedDateCache = lastModifiedDate;
                     }
                     try {
-                        const imageResponse = await (0, node_fetch_1.default)(imageUrl);
-                        const imageBuffer = await imageResponse.buffer();
+                        const imageResponse = await fetch(imageUrl);
+                        const arrayBuffer = await imageResponse.arrayBuffer();
+                        const imageBuffer = Buffer.from(arrayBuffer);
                         await interaction.editReply({
                             content: "Image generation in progress...",
                             files: [
@@ -122,10 +112,6 @@ async function updateStatus(interaction, imageId, imageUrl, firstCall = false) {
                 });
                 return;
         }
-        if (status !== "COMPLETED") {
-            await sleep(100);
-            await updateStatus(interaction, imageId, imageUrl);
-        }
     }
     catch (error) {
         console.error("Status update error:", error);
@@ -144,10 +130,9 @@ const command = {
         .setName("loraname")
         .setDescription("The name of the LoRA to add")
         .setRequired(false)),
-    async execute(interaction) {
+    async execute(interaction, api) {
         const prompt = "IMG_5678.HEIC, " + interaction.options.getString("prompt", true);
         const loraName = interaction.options.getString("loraname");
-        const restrictedLoras = JSON.parse(fs.readFileSync(path.join(__dirname, "..", "..", "restrictions.json"), "utf8"));
         if (loraName) {
             const userId = interaction.user.id;
             const allowedIds = restrictedLoras[loraName.trim()];
@@ -172,36 +157,25 @@ const command = {
         }
         await interaction.reply({ content: "Generating image..." });
         try {
-            let apiUrl = `${API_URL}/generateImage?prompt=${encodeURIComponent(prompt)}`;
-            if (loraName) {
-                apiUrl += `&loraName=${encodeURIComponent(loraName)}`;
-                // await interaction.editReply({ content: `Generating image with LoRA: ${loraName}...` });
-            }
-            else {
-                // await interaction.editReply({ content: 'Generating image without LoRA...' });
-            }
-            const response = await (0, node_fetch_1.default)(apiUrl, {
-                method: "GET",
-                headers: {
-                    "x-api-key": `${API_KEY}`,
-                },
-            });
-            const data = await response.json();
+            const data = await api.generateProgressiveImage({
+                query: prompt,
+                loraName: loraName,
+            }, () => updateStatus(interaction, data.imageId, api, data.imageUrl, true));
             if ("error" in data) {
                 await interaction.editReply({ content: `Error: ${data.error}` });
                 return;
             }
-            const { imageId, imageUrl } = data;
-            await updateStatus(interaction, imageId, imageUrl, true);
+            // const { imageId, imageUrl } = data;
+            // await updateStatus(interaction, imageId, api, imageUrl, true);
         }
         catch (err) {
             if (err instanceof Error) {
                 let errorMessage = err.message;
-                if (err.code === "ECONNREFUSED") {
+                if (err.message.includes("ECONNREFUSED")) {
                     errorMessage =
                         "The Weights.gg Unofficial API server is down (Connection Refused). Please ensure it is running and accessible.";
                 }
-                else if (err instanceof node_fetch_1.default.FetchError) {
+                else if (err.message.includes("Failed to fetch")) {
                     errorMessage = `Failed to fetch image: ${err.message}. Please check the API URL and your network connection.`;
                 }
                 else {

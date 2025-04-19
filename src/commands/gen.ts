@@ -3,35 +3,32 @@ import {
   CommandInteraction,
   ChatInputCommandInteraction,
 } from "discord.js";
-import fetch from "node-fetch";
 import * as fs from "fs";
 import * as path from "path";
+import { WeightsApi } from "../libs/weights-api";
 
-const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
-const API_URL = process.env.API_URL;
-const API_KEY = process.env.API_KEY;
-let lastModifiedDateCache: string | null = null;
-
-interface ImageStatus {
-  status: string;
-  lastModifiedDate?: string | null;
-  error?: string | null;
+interface Restrictions {
+  [key: string]: string[];
 }
+
+const restrictedLoras: Restrictions = JSON.parse(
+  fs.readFileSync(
+    path.join(__dirname, "..", "..", "restrictions.json"),
+    "utf8",
+  ),
+);
 
 async function updateStatus(
   interaction: CommandInteraction,
   imageId: string,
+  api: WeightsApi,
   imageUrl: string,
   firstCall: boolean = false,
 ): Promise<void> {
+  let lastModifiedDateCache: string | null = null;
+
   try {
-    const response = await fetch(`${API_URL}/status/${imageId}`, {
-      method: "GET",
-      headers: {
-        "x-api-key": `${API_KEY}`,
-      },
-    });
-    const stats: ImageStatus = await response.json();
+    const stats = await api.getStatus({ imageId });
     console.log("Image status:", stats);
     const { status } = stats;
     const lastModifiedDate = stats.lastModifiedDate || null;
@@ -41,7 +38,8 @@ async function updateStatus(
       case "COMPLETED":
         try {
           const imageResponse = await fetch(imageUrl);
-          const imageBuffer = await imageResponse.buffer();
+          const arrayBuffer = await imageResponse.arrayBuffer();
+          const imageBuffer = Buffer.from(arrayBuffer);
 
           await interaction.editReply({
             content: "Image generation complete!",
@@ -80,7 +78,8 @@ async function updateStatus(
           }
           try {
             const imageResponse = await fetch(imageUrl);
-            const imageBuffer = await imageResponse.buffer();
+            const arrayBuffer = await imageResponse.arrayBuffer();
+            const imageBuffer = Buffer.from(arrayBuffer);
 
             await interaction.editReply({
               content: "Image generation in progress...",
@@ -106,11 +105,6 @@ async function updateStatus(
         });
         return;
     }
-
-    if (status !== "COMPLETED") {
-      await sleep(100);
-      await updateStatus(interaction, imageId, imageUrl);
-    }
   } catch (error) {
     console.error("Status update error:", error);
     await interaction.editReply({ content: "Failed to update image status." });
@@ -134,21 +128,10 @@ const command = {
         .setRequired(false),
     ),
 
-  async execute(interaction: ChatInputCommandInteraction) {
+  async execute(interaction: ChatInputCommandInteraction, api: WeightsApi) {
     const prompt =
       "IMG_5678.HEIC, " + interaction.options.getString("prompt", true);
     const loraName = interaction.options.getString("loraname") as string | null;
-
-    // EXCEPTIONAL PROHIBITION
-    interface Restrictions {
-      [key: string]: string[];
-    }
-    const restrictedLoras: Restrictions = JSON.parse(
-      fs.readFileSync(
-        path.join(__dirname, "..", "..", "restrictions.json"),
-        "utf8",
-      ),
-    );
 
     if (loraName) {
       const userId = interaction.user.id;
@@ -178,37 +161,28 @@ const command = {
     await interaction.reply({ content: "Generating image..." });
 
     try {
-      let apiUrl = `${API_URL}/generateImage?prompt=${encodeURIComponent(prompt)}`;
-      if (loraName) {
-        apiUrl += `&loraName=${encodeURIComponent(loraName)}`;
-        // await interaction.editReply({ content: `Generating image with LoRA: ${loraName}...` });
-      } else {
-        // await interaction.editReply({ content: 'Generating image without LoRA...' });
-      }
-
-      const response = await fetch(apiUrl, {
-        method: "GET",
-        headers: {
-          "x-api-key": `${API_KEY}`,
+      const data = await api.generateProgressiveImage(
+        {
+          query: prompt,
+          loraName: loraName,
         },
-      });
-
-      const data = await response.json();
+        () => updateStatus(interaction, data.imageId, api, data.imageUrl, true),
+      );
 
       if ("error" in data) {
         await interaction.editReply({ content: `Error: ${data.error}` });
         return;
       }
 
-      const { imageId, imageUrl } = data;
-      await updateStatus(interaction, imageId, imageUrl, true);
+      // const { imageId, imageUrl } = data;
+      // await updateStatus(interaction, imageId, api, imageUrl, true);
     } catch (err: Error | unknown) {
       if (err instanceof Error) {
         let errorMessage = err.message;
-        if ((err as NodeJS.ErrnoException).code === "ECONNREFUSED") {
+        if (err.message.includes("ECONNREFUSED")) {
           errorMessage =
             "The Weights.gg Unofficial API server is down (Connection Refused). Please ensure it is running and accessible.";
-        } else if (err instanceof fetch.FetchError) {
+        } else if (err.message.includes("Failed to fetch")) {
           errorMessage = `Failed to fetch image: ${err.message}. Please check the API URL and your network connection.`;
         } else {
           errorMessage = `An unexpected error occurred: ${err.message}`;

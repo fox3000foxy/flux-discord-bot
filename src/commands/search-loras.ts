@@ -3,10 +3,7 @@ import {
   EmbedBuilder,
   ChatInputCommandInteraction,
 } from "discord.js";
-import fetch from "node-fetch";
-
-const API_URL = process.env.API_URL;
-const API_KEY = process.env.API_KEY;
+import { WeightsApi } from "../libs/weights-api";
 
 interface LoraData {
   name: string;
@@ -25,27 +22,12 @@ const command = {
         .setRequired(true),
     ),
 
-  async execute(interaction: ChatInputCommandInteraction) {
+  async execute(interaction: ChatInputCommandInteraction, api: WeightsApi) {
     const query = interaction.options.getString("query", true);
     try {
       await interaction.deferReply({ ephemeral: true });
 
-      const response = await fetch(`${API_URL}/search-loras?query=${query}`, {
-        headers: {
-          "x-api-key": `${API_KEY}`,
-        },
-        timeout: 5000, // 5 seconds timeout
-      });
-
-      if (!response.ok) {
-        console.error(`HTTP error! status: ${response.status}`);
-        await interaction.editReply({
-          content: `Error: HTTP ${response.status}`,
-        });
-        return;
-      }
-
-      const loras = (await response.json()) as LoraData[];
+      const loras = (await api.searchLoras({ query: query })) as LoraData[];
 
       if (!Array.isArray(loras)) {
         console.error("Invalid LoRA data:", loras);

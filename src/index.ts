@@ -1,5 +1,6 @@
 import { Client, Collection, Interaction } from "discord.js";
 import { Command, Config } from "./types";
+import { WeightsApi } from "./libs/weights-api";
 import * as fs from "node:fs";
 import * as path from "node:path";
 import fetch from "node-fetch";
@@ -12,6 +13,7 @@ declare module "discord.js" {
 }
 
 dotenv.config();
+process.env.WEIGHTS_UNOFFICIAL_ENDPOINT = process.env.API_URL;
 
 const config: Config = {
   DISCORD_TOKEN: process.env.DISCORD_TOKEN || "",
@@ -21,6 +23,7 @@ const config: Config = {
 
 // Initialize Discord Client
 const client = new Client({ intents: [] });
+const api = new WeightsApi(config.API_KEY);
 
 // Store commands in a collection
 client.commands = new Collection<string, Command>();
@@ -117,7 +120,7 @@ client.on("interactionCreate", async (interaction: Interaction) => {
     }
 
     try {
-      await command.execute(interaction);
+      await command.execute(interaction, api);
     } catch (error) {
       console.error(`Error executing ${interaction.commandName}:`, error);
       await interaction.reply({
