@@ -39,6 +39,7 @@ const path = __importStar(require("path"));
 const restrictedLoras = JSON.parse(fs.readFileSync(path.join(__dirname, "..", "..", "restrictions.json"), "utf8"));
 async function updateStatus(status, interaction, imageId, firstCall = false) {
     try {
+        console.log(status, imageId);
         switch (status) {
             case "COMPLETED":
                 try {

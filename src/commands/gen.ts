@@ -25,6 +25,7 @@ async function updateStatus(
   firstCall: boolean = false,
 ): Promise<void> {
   try {
+    console.log(status, imageId);
     switch (status) {
       case "COMPLETED":
         try {
