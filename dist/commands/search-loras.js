@@ -13,6 +13,7 @@ const command = {
         const query = interaction.options.getString("query", true);
         try {
             await interaction.deferReply({ ephemeral: true });
+            const startTime = Date.now();
             const loras = (await api.searchLoras({ query: query }));
             if (!Array.isArray(loras)) {
                 console.error("Invalid LoRA data:", loras);
@@ -27,6 +28,7 @@ const command = {
                 });
                 return;
             }
+            const duration = `${((Date.now() - startTime) / 1000).toFixed(2)}s`;
             const embeds = loras.map((lora) => new discord_js_1.EmbedBuilder()
                 .setTitle(lora.name)
                 .setThumbnail(lora.image)
@@ -34,7 +36,10 @@ const command = {
                 name: "Tags",
                 value: lora.tags.length > 0 ? lora.tags.join(", ") : "None",
             }));
-            await interaction.editReply({ embeds });
+            await interaction.editReply({
+                content: `Research made in ${duration}`,
+                embeds,
+            });
         }
         catch (error) {
             console.error("Search LoRAs fetch error:", error);

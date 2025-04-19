@@ -17,15 +17,17 @@ const restrictedLoras: Restrictions = JSON.parse(
     "utf8",
   ),
 );
-
 async function updateStatus(
   status: string,
   interaction: CommandInteraction,
   imageId: string,
   firstCall: boolean = false,
+  startTime: number = Date.now(),
 ): Promise<void> {
   try {
     console.log(status, imageId);
+    const duration = ((Date.now() - startTime) / 1000).toFixed(1);
+
     switch (status) {
       case "COMPLETED":
         try {
@@ -35,7 +37,7 @@ async function updateStatus(
           const imageBuffer = Buffer.from(arrayBuffer);
 
           await interaction.editReply({
-            content: "Image generation complete!",
+            content: `Image generation complete! (${duration}s)`,
             files: [
               {
                 attachment: imageBuffer,
@@ -47,7 +49,7 @@ async function updateStatus(
           console.error("Failed to fetch and attach image:", fetchError);
           const imageUrl = process.env.API_URL + "/" + imageId;
           await interaction.editReply({
-            content: `Image generation complete, but failed to attach image. Please check the URL manually: ${imageUrl}`,
+            content: `Image generation complete (${duration}s), but failed to attach image. Please check the URL manually: ${imageUrl}`,
           });
         }
         return;
@@ -61,7 +63,7 @@ async function updateStatus(
         break;
 
       case "QUEUED":
-        await interaction.editReply({ content: "Image is in queue" });
+        await interaction.editReply({ content: `Image is in queue` });
         break;
 
       case "PENDING":
@@ -72,7 +74,7 @@ async function updateStatus(
           const imageBuffer = Buffer.from(arrayBuffer);
 
           await interaction.editReply({
-            content: "Image generation in progress...",
+            content: `Image generation in progress...`,
             files: [
               {
                 attachment: imageBuffer,
@@ -115,6 +117,7 @@ const command = {
     const prompt =
       "IMG_5678.HEIC, " + interaction.options.getString("prompt", true);
     const loraName = interaction.options.getString("loraname") as string | null;
+    const startTime = Date.now();
 
     if (loraName) {
       const userId = interaction.user.id;
@@ -149,7 +152,8 @@ const command = {
           prompt: prompt,
           loraName: loraName,
         },
-        (status, data) => updateStatus(status, interaction, data.imageId, true),
+        (status, data) =>
+          updateStatus(status, interaction, data.imageId, true, startTime),
       );
     } catch (err: Error | unknown) {
       if (err instanceof Error) {
