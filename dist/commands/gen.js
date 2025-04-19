@@ -40,16 +40,16 @@ const discord_js_1 = require("discord.js");
 const node_fetch_1 = __importDefault(require("node-fetch"));
 const fs = __importStar(require("fs"));
 const path = __importStar(require("path"));
-const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const API_URL = process.env.API_URL;
 const API_KEY = process.env.API_KEY;
 let lastModifiedDateCache = null;
 async function updateStatus(interaction, imageId, imageUrl, firstCall = false) {
     try {
         const response = await (0, node_fetch_1.default)(`${API_URL}/status/${imageId}`, {
-            method: 'GET',
+            method: "GET",
             headers: {
-                'x-api-key': `${API_KEY}`,
+                "x-api-key": `${API_KEY}`,
             },
         });
         const stats = await response.json();
@@ -63,26 +63,32 @@ async function updateStatus(interaction, imageId, imageUrl, firstCall = false) {
                     const imageResponse = await (0, node_fetch_1.default)(imageUrl);
                     const imageBuffer = await imageResponse.buffer();
                     await interaction.editReply({
-                        content: 'Image generation complete!',
-                        files: [{
+                        content: "Image generation complete!",
+                        files: [
+                            {
                                 attachment: imageBuffer,
-                                name: 'generated_image.png'
-                            }],
+                                name: "generated_image.png",
+                            },
+                        ],
                     });
                 }
                 catch (fetchError) {
                     console.error("Failed to fetch and attach image:", fetchError);
-                    await interaction.editReply({ content: `Image generation complete, but failed to attach image. Please check the URL manually: ${imageUrl}` });
+                    await interaction.editReply({
+                        content: `Image generation complete, but failed to attach image. Please check the URL manually: ${imageUrl}`,
+                    });
                 }
                 return;
             case "STARTING":
                 if (firstCall) {
-                    await interaction.editReply({ content: 'Image generation started...' });
+                    await interaction.editReply({
+                        content: "Image generation started...",
+                    });
                     lastModifiedDateCache = null;
                 }
                 break;
             case "QUEUED":
-                await interaction.editReply({ content: 'Image is in queue' });
+                await interaction.editReply({ content: "Image is in queue" });
                 break;
             case "PENDING":
                 if (lastModifiedDate !== lastModifiedDateCache) {
@@ -93,21 +99,27 @@ async function updateStatus(interaction, imageId, imageUrl, firstCall = false) {
                         const imageResponse = await (0, node_fetch_1.default)(imageUrl);
                         const imageBuffer = await imageResponse.buffer();
                         await interaction.editReply({
-                            content: 'Image generation in progress...',
-                            files: [{
+                            content: "Image generation in progress...",
+                            files: [
+                                {
                                     attachment: imageBuffer,
-                                    name: 'generated_image.png'
-                                }],
+                                    name: "generated_image.png",
+                                },
+                            ],
                         });
                     }
                     catch (fetchError) {
                         console.error("Failed to fetch and attach image:", fetchError);
-                        await interaction.editReply({ content: `Image generation in progress...` });
+                        await interaction.editReply({
+                            content: `Image generation in progress...`,
+                        });
                     }
                 }
                 break;
             case "FAILED":
-                await interaction.editReply({ content: `Image generation failed. Please try again. (Reason : ${error}).` });
+                await interaction.editReply({
+                    content: `Image generation failed. Please try again. (Reason : ${error}).`,
+                });
                 return;
         }
         if (status !== "COMPLETED") {
@@ -121,22 +133,21 @@ async function updateStatus(interaction, imageId, imageUrl, firstCall = false) {
     }
 }
 const command = {
-    //@ts-ignore
     data: new discord_js_1.SlashCommandBuilder()
-        .setName('gen')
-        .setDescription('Replies with a generated image!')
-        .addStringOption(option => option.setName('prompt')
-        .setDescription('The image prompt')
+        .setName("gen")
+        .setDescription("Replies with a generated image!")
+        .addStringOption((option) => option
+        .setName("prompt")
+        .setDescription("The image prompt")
         .setRequired(true))
-        .addStringOption(option => option.setName('loraname')
-        .setDescription('The name of the LoRA to add')
+        .addStringOption((option) => option
+        .setName("loraname")
+        .setDescription("The name of the LoRA to add")
         .setRequired(false)),
     async execute(interaction) {
-        //@ts-ignore
-        const prompt = "IMG_5678.HEIC, " + interaction.options.getString('prompt', true);
-        //@ts-ignore
-        const loraName = interaction.options.getString('loraname');
-        const restrictedLoras = JSON.parse(fs.readFileSync(path.join(__dirname, '..', '..', 'restrictions.json'), 'utf8'));
+        const prompt = "IMG_5678.HEIC, " + interaction.options.getString("prompt", true);
+        const loraName = interaction.options.getString("loraname");
+        const restrictedLoras = JSON.parse(fs.readFileSync(path.join(__dirname, "..", "..", "restrictions.json"), "utf8"));
         if (loraName) {
             const userId = interaction.user.id;
             const allowedIds = restrictedLoras[loraName.trim()];
@@ -144,16 +155,22 @@ const command = {
                 console.log(`LoRA ${loraName} has restricted IDs: ${allowedIds}`);
                 if (!allowedIds.includes(userId)) {
                     console.log(`User ${userId} is not allowed to use LoRA ${loraName}.`);
-                    await interaction.reply({ content: `You are not allowed to use this LoRA.`, ephemeral: true });
+                    await interaction.reply({
+                        content: `You are not allowed to use this LoRA.`,
+                        ephemeral: true,
+                    });
                     return;
                 }
             }
         }
         if (prompt.length < 10) {
-            await interaction.reply({ content: 'Prompt must be at least 10 characters long.', ephemeral: true });
+            await interaction.reply({
+                content: "Prompt must be at least 10 characters long.",
+                ephemeral: true,
+            });
             return;
         }
-        await interaction.reply({ content: 'Generating image...' });
+        await interaction.reply({ content: "Generating image..." });
         try {
             let apiUrl = `${API_URL}/generateImage?prompt=${encodeURIComponent(prompt)}`;
             if (loraName) {
@@ -164,13 +181,13 @@ const command = {
                 // await interaction.editReply({ content: 'Generating image without LoRA...' });
             }
             const response = await (0, node_fetch_1.default)(apiUrl, {
-                method: 'GET',
+                method: "GET",
                 headers: {
-                    'x-api-key': `${API_KEY}`,
+                    "x-api-key": `${API_KEY}`,
                 },
             });
             const data = await response.json();
-            if ('error' in data) {
+            if ("error" in data) {
                 await interaction.editReply({ content: `Error: ${data.error}` });
                 return;
             }
@@ -178,19 +195,24 @@ const command = {
             await updateStatus(interaction, imageId, imageUrl, true);
         }
         catch (err) {
-            let errorMessage = err.message;
-            if (err.code === 'ECONNREFUSED') {
-                errorMessage = "The Weights.gg Unofficial API server is down (Connection Refused). Please ensure it is running and accessible.";
+            if (err instanceof Error) {
+                let errorMessage = err.message;
+                if (err.code === "ECONNREFUSED") {
+                    errorMessage =
+                        "The Weights.gg Unofficial API server is down (Connection Refused). Please ensure it is running and accessible.";
+                }
+                else if (err instanceof node_fetch_1.default.FetchError) {
+                    errorMessage = `Failed to fetch image: ${err.message}. Please check the API URL and your network connection.`;
+                }
+                else {
+                    errorMessage = `An unexpected error occurred: ${err.message}`;
+                }
+                console.error("Fetch error: ", errorMessage);
+                await interaction.editReply({
+                    content: `An error occurred: ${errorMessage}`,
+                });
             }
-            else if (err instanceof node_fetch_1.default.FetchError) {
-                errorMessage = `Failed to fetch image: ${err.message}. Please check the API URL and your network connection.`;
-            }
-            else {
-                errorMessage = `An unexpected error occurred: ${err.message}`;
-            }
-            console.error('Fetch error: ', errorMessage);
-            await interaction.editReply({ content: `An error occurred: ${errorMessage}` });
         }
-    }
+    },
 };
 exports.default = command;

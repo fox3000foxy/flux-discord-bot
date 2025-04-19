@@ -43,9 +43,9 @@ const node_fetch_1 = __importDefault(require("node-fetch"));
 const dotenv_1 = __importDefault(require("dotenv"));
 dotenv_1.default.config();
 const config = {
-    DISCORD_TOKEN: process.env.DISCORD_TOKEN || '',
-    API_URL: process.env.API_URL || '',
-    API_KEY: process.env.API_KEY || ''
+    DISCORD_TOKEN: process.env.DISCORD_TOKEN || "",
+    API_URL: process.env.API_URL || "",
+    API_KEY: process.env.API_KEY || "",
 };
 // Initialize Discord Client
 const client = new discord_js_1.Client({ intents: [] });
@@ -53,12 +53,12 @@ const client = new discord_js_1.Client({ intents: [] });
 client.commands = new discord_js_1.Collection();
 // Load commands from files
 async function loadCommands(client) {
-    const commandsPath = path.join(__dirname, 'commands');
+    const commandsPath = path.join(__dirname, "commands");
     const commandFiles = fs.readdirSync(commandsPath);
     for (const file of commandFiles) {
         const filePath = path.join(commandsPath, file);
-        const command = require(filePath)?.default || require(filePath);
-        if ('data' in command && 'execute' in command) {
+        const command = await Promise.resolve(`${filePath}`).then(s => __importStar(require(s))).then((m) => m.default || m);
+        if ("data" in command && "execute" in command) {
             client.commands.set(command.data.name, command);
             console.log(`Loaded command: ${command.data.name}`);
         }
@@ -77,46 +77,54 @@ async function registerCommands(client) {
             await commands.create({
                 ...command.data.toJSON(),
                 integration_types: [0, 1],
-                contexts: [0, 1, 2]
+                contexts: [0, 1, 2],
             });
         }
-        console.log('Successfully registered application commands.');
+        console.log("Successfully registered application commands.");
     }
     catch (error) {
-        console.error('Failed to register application commands:', error);
+        console.error("Failed to register application commands:", error);
     }
 }
 // Event: Client is ready
-client.on('ready', async () => {
+client.on("ready", async () => {
     console.log(`Logged in as ${client.user?.tag}!`);
     await loadCommands(client);
     await registerCommands(client);
 });
 // Event: Interaction Create (Slash Commands)
-client.on('interactionCreate', async (interaction) => {
+client.on("interactionCreate", async (interaction) => {
     if (interaction.isCommand()) {
         const command = client.commands.get(interaction.commandName);
         if (process.env.BLACKLIST_KEY) {
-            const blacklistedIds = await (0, node_fetch_1.default)('https://aventuros.fr/api/discord/blacklistbot/list', {
+            const blacklistedIds = await (0, node_fetch_1.default)("https://aventuros.fr/api/discord/blacklistbot/list", {
                 headers: {
-                    'Authorization': process.env.BLACKLIST_KEY
-                }
+                    Authorization: process.env.BLACKLIST_KEY,
+                },
             })
-                .then((response) => response.json())
+                .then(async (response) => {
+                const data = (await response.json());
+                return data;
+            })
                 .catch((error) => {
-                console.error(error);
+                if (error instanceof Error) {
+                    console.error(error);
+                }
                 return [];
             });
             if (blacklistedIds.includes(interaction.user.id)) {
                 return interaction.reply({
                     content: "🔧 The bot is currently in maintenance. Please try again later.",
-                    ephemeral: true
+                    ephemeral: true,
                 });
             }
         }
         if (!command) {
             console.error(`No command matching ${interaction.commandName} was found.`);
-            await interaction.reply({ content: 'Command not found!', ephemeral: true });
+            await interaction.reply({
+                content: "Command not found!",
+                ephemeral: true,
+            });
             return;
         }
         try {
@@ -124,7 +132,10 @@ client.on('interactionCreate', async (interaction) => {
         }
         catch (error) {
             console.error(`Error executing ${interaction.commandName}:`, error);
-            await interaction.reply({ content: 'There was an error while executing this command!', ephemeral: true });
+            await interaction.reply({
+                content: "There was an error while executing this command!",
+                ephemeral: true,
+            });
         }
     }
     else if (interaction.isAutocomplete()) {
@@ -144,9 +155,9 @@ client.on('interactionCreate', async (interaction) => {
 // Log in to Discord with your client's token
 client.login(config.DISCORD_TOKEN);
 // Error handling
-process.on('uncaughtException', (error) => {
-    console.error('🚨 Uncaught Exception: An error occurred!', error);
+process.on("uncaughtException", (error) => {
+    console.error("🚨 Uncaught Exception: An error occurred!", error);
 });
-process.on('unhandledRejection', (reason, promise) => {
-    console.warn('⚠️ Unhandled Rejection at:', promise, 'reason:', reason);
+process.on("unhandledRejection", (reason, promise) => {
+    console.warn("⚠️ Unhandled Rejection at:", promise, "reason:", reason);
 });

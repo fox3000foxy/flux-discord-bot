@@ -9,21 +9,24 @@ const API_URL = process.env.API_URL;
 const API_KEY = process.env.API_KEY;
 const command = {
     data: new discord_js_1.SlashCommandBuilder()
-        .setName('quota')
-        .setDescription('Fetches the quota information.'),
+        .setName("quota")
+        .setDescription("Fetches the quota information."),
     async execute(interaction) {
         try {
             await interaction.deferReply({ ephemeral: true });
+            const headers = {};
+            if (API_KEY) {
+                headers["x-api-key"] = API_KEY;
+            }
             const response = await (0, node_fetch_1.default)(`${API_URL}/quota`, {
-                //@ts-ignore
-                headers: {
-                    'x-api-key': API_KEY,
-                },
+                headers: headers,
                 timeout: 5000, // 5 seconds timeout
             });
             if (!response.ok) {
                 console.error(`HTTP error! status: ${response.status}`);
-                await interaction.editReply({ content: `Error: HTTP ${response.status}` });
+                await interaction.editReply({
+                    content: `Error: HTTP ${response.status}`,
+                });
                 return;
             }
             const quota = await response.text();
@@ -31,7 +34,9 @@ const command = {
         }
         catch (error) {
             console.error("Quota fetch error:", error);
-            await interaction.editReply({ content: 'Error: Failed to fetch quota information.' });
+            await interaction.editReply({
+                content: "Error: Failed to fetch quota information.",
+            });
         }
     },
 };
