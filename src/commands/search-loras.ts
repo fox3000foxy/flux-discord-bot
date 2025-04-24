@@ -3,13 +3,8 @@ import {
   EmbedBuilder,
   ChatInputCommandInteraction,
 } from "discord.js";
-import { WeightsApi } from "../libs/weights-api";
+import { Lora, WeightsApi } from "../libs/weights-api";
 
-interface LoraData {
-  name: string;
-  image: string;
-  tags: string[];
-}
 
 const command = {
   data: new SlashCommandBuilder()
@@ -28,7 +23,7 @@ const command = {
       await interaction.deferReply({ ephemeral: true });
       const startTime = Date.now();
 
-      const loras = (await api.searchLoras({ query: query })) as LoraData[];
+      const loras = (await api.searchLoras({ query: query })) as Lora[];
 
       if (!Array.isArray(loras)) {
         console.error("Invalid LoRA data:", loras);

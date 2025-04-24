@@ -25,7 +25,7 @@ export interface Lora {
   name: string;
   description: string;
   tags: string[];
-  // other properties
+  image: string;
 }
 
 export interface Params {
