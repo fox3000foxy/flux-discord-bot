@@ -11,12 +11,21 @@ interface Restrictions {
   [key: string]: string[];
 }
 
-const restrictedLoras: Restrictions = JSON.parse(
-  fs.readFileSync(
-    path.join(__dirname, "..", "..", "restrictions.json"),
-    "utf8",
-  ),
+const restrictionsFilePath = path.join(
+  __dirname,
+  "..",
+  "..",
+  "restrictions.json",
 );
+let restrictedLoras: Restrictions = {};
+
+if (fs.existsSync(restrictionsFilePath)) {
+  restrictedLoras = JSON.parse(fs.readFileSync(restrictionsFilePath, "utf8"));
+} else {
+  console.warn(
+    "restrictions.json file not found.  Using an empty restrictions list.",
+  );
+}
 async function updateStatus(
   status: string,
   interaction: CommandInteraction,
