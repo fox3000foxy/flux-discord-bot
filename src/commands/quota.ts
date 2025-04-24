@@ -10,8 +10,9 @@ const command = {
     try {
       await interaction.deferReply({ ephemeral: true });
 
-      const quota = await api.getQuota();
-      await interaction.editReply({ content: quota });
+      const quotasText = await api.getQuota();
+      const quotas = JSON.parse(quotasText);
+      await interaction.editReply({ content: quotas.usage.DAILY_IMAGE_CREATIONS + " of " + quotas.limits.DAILY_IMAGE_CREATIONS });
     } catch (error) {
       console.error("Quota fetch error:", error);
       await interaction.editReply({
