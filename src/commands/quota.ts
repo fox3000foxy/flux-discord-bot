@@ -16,7 +16,7 @@ const command = {
     } catch (error) {
       console.error("Quota fetch error:", error);
       await interaction.editReply({
-        content: "Error: Failed to fetch quota information.",
+        content: "Error: Failed to fetch quota information. This may due to server not launching yet.",
       });
     }
   },
