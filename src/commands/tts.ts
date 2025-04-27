@@ -42,6 +42,14 @@ const command = {
       const male = interaction.options.getBoolean("male") ?? true; // Default to false if not provided
 
       const { result } = await api.generateFromTTS(voice, text, pitch, male);
+
+      if(!result) {
+        await interaction.editReply({
+          content: "Error: Failed to generate TTS. Your prompt characters are wrong.",
+        });
+        return;
+      }
+
       const fileData = await fetch(result).then((res) => res.arrayBuffer());
       const attachmentBuilder = new AttachmentBuilder(Buffer.from(fileData), { name: "converted_audio.mp3" })
       const attachments = [attachmentBuilder];
@@ -53,7 +61,7 @@ const command = {
     } catch (error) {
       console.error("Quota fetch error:", error);
       await interaction.editReply({
-        content: "Error: Failed to generate TTS. This may due to server not launching yet, or your prompt characters are wrong.",
+        content: "Error: Failed to generate TTS. This may due to server not launching yet.",
       });
     }
   },
