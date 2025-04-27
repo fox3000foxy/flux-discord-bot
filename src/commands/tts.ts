@@ -41,7 +41,9 @@ const command = {
       const pitch = interaction.options.getNumber("pitch") ?? 0; // Default to 0 if not provided
       const male = interaction.options.getBoolean("male") ?? true; // Default to false if not provided
 
-      const { result } = await api.generateFromTTS(voice, text, pitch, male);
+      const output = await api.generateFromTTS(voice, text, pitch, male);
+      console.log("TTS output:", output);
+      const result = output?.result;
 
       if(!result) {
         await interaction.editReply({
