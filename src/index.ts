@@ -106,6 +106,29 @@ client.on("interactionCreate", async (interaction: Interaction) => {
           ephemeral: true,
         });
       }
+    } else if(interaction.isUserContextMenuCommand()) {
+      const command = client.commands.get(interaction.commandName) as Command;
+      if (!command) {
+        console.error(
+          `No command matching ${interaction.commandName} was found.`,
+        );
+        await interaction.reply({
+          content: "Command not found!",
+          ephemeral: true,
+        });
+        return;
+      }
+      try {
+        await command.execute(interaction, api);
+      }
+      catch (error) {
+        console.error(`Error executing ${interaction.commandName}:`, error);
+        await interaction.reply({
+          content: "There was an error while executing this command!",
+          ephemeral: true,
+        });
+      }
+      return;
     }
 
     if (!command) {
