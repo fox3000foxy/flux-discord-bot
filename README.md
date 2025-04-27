@@ -5,6 +5,9 @@ This is a Discord bot that interfaces with the [Weights.gg Unofficial API](https
 ![image](https://github.com/user-attachments/assets/d5809ab1-8aea-49fa-9003-af9c39fab815)
 
 
+[![Invite Bot](https://img.shields.io/badge/Invite%20Bot-Click%20Here-blue)](https://discord.com/oauth2/authorize?client_id=1343500309519142922)
+
+
 ## Features
 
 -   **Image Generation:** Generates images based on prompts provided by Discord users.
@@ -13,7 +16,15 @@ This is a Discord bot that interfaces with the [Weights.gg Unofficial API](https
 -   **Concurrency Management:** Manages concurrent image generation requests using browser spaces.
 -   **Error Handling:** Implements error handling to gracefully handle issues such as invalid prompts or API errors.
 -   **Command Management:** Uses Discord.js slash commands for a user-friendly experience.
--   **Restart Command:** Provides a command to restart the bot and the Weights.gg API.
+
+## Commands
+
+-   **/gen**: Generates an image based on a user-provided prompt. Optionally, users can specify a LoRA model to enhance the image generation.
+-   **/quota**: Fetches and displays the user's current quota usage for image and voice generation.
+-   **/tts**: Converts text to speech using a specified voice model, with optional pitch and gender settings.
+-   **/voice-convert**: Converts an uploaded audio file to a different voice using a specified voice model and optional pitch adjustments.
+-   **/search-loras**: Searches for LoRA models or voice models based on a query. Users can filter results by type (audio or image).
+-   **Convert Voice (Context Menu)**: Allows users to convert an audio file attached to a message into a different voice using a modal interface.
 
 ## Setup
 
