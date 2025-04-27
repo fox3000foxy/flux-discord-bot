@@ -1,5 +1,6 @@
 import { ContextMenuCommandBuilder, ApplicationCommandType, ContextMenuCommandInteraction, AttachmentBuilder, ModalBuilder, TextInputBuilder, TextInputStyle, ActionRowBuilder } from "discord.js";
 import { WeightsApi } from "../libs/weights-api";
+import { v4 } from 'uuid';
 
 const command = {
     data: new ContextMenuCommandBuilder()
@@ -23,8 +24,10 @@ const command = {
             return;
         }
 
+        const id = v4().split('-')[0];
+
         const modal = new ModalBuilder()
-            .setCustomId('voiceConvertModal')
+            .setCustomId('voiceConvertModal' + id)
             .setTitle('Voice Conversion');
 
         const voiceInput = new TextInputBuilder()
@@ -48,7 +51,7 @@ const command = {
 
         interaction.client.on('interactionCreate', async modalInteraction => {
             if (!modalInteraction.isModalSubmit()) return;
-            if (modalInteraction.customId === 'voiceConvertModal') {
+            if (modalInteraction.customId === 'voiceConvertModal' + id) {
                 await modalInteraction.deferReply();
 
                 const voice = modalInteraction.fields.getTextInputValue('voiceName');
