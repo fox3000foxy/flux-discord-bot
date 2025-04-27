@@ -53,7 +53,7 @@ const command = {
     } catch (error) {
       console.error("Quota fetch error:", error);
       await interaction.editReply({
-        content: "Error: Failed to generate TTS. This may due to server not launching yet.",
+        content: "Error: Failed to generate TTS. This may due to server not launching yet, or your prompt characters are wrong.",
       });
     }
   },
