@@ -49,7 +49,7 @@ const command = {
 
         await interaction.showModal(modal);
 
-        interaction.client.on('interactionCreate', async modalInteraction => {
+        interaction.client.once('interactionCreate', async modalInteraction => {
             if (!modalInteraction.isModalSubmit()) return;
             if (modalInteraction.customId === 'voiceConvertModal' + id) {
                 await modalInteraction.deferReply();
