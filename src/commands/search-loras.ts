@@ -14,21 +14,11 @@ const command = {
         .setName("query")
         .setDescription("The search query")
         .setRequired(true),
-    )
-    .addStringOption((option) =>
-      option
-        .setName("type")
-        .setDescription("The type of LoRA to search for (audio or image)")
-        .addChoices(
-          { name: "audio", value: "audio" },
-          { name: "image", value: "image" },
-        )
-        .setRequired(false),
     ),
-
+    
   async execute(interaction: ChatInputCommandInteraction, api: WeightsApi) {
     const query = interaction.options.getString("query", true);
-    const type = interaction.options.getString("type", false) || "image";
+    const type = "image";
 
     try {
       await interaction.deferReply({ ephemeral: true });

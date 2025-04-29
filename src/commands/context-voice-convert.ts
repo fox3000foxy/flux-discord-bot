@@ -1,6 +1,24 @@
 import { ContextMenuCommandBuilder, ApplicationCommandType, ContextMenuCommandInteraction, AttachmentBuilder, ModalBuilder, TextInputBuilder, TextInputStyle, ActionRowBuilder } from "discord.js";
+import Replicate from "replicate";
+import { v4 } from "uuid";
 import { WeightsApi } from "../libs/weights-api";
-import { v4 } from 'uuid';
+const replicate = new Replicate();
+
+async function generateAudioConversion(input_audio: string, custom_rvc_model_download_url: string, pitch_change = 0) {
+  const input = {
+      protect: 0.5,
+      rvc_model: "CUSTOM",
+      index_rate: 1,
+      input_audio,
+      pitch_change,
+      rms_mix_rate: 1,
+      filter_radius: 1,
+      custom_rvc_model_download_url
+  };
+  const output: unknown = await replicate.run("pseudoram/rvc-v2:d18e2e0a6a6d3af183cc09622cebba8555ec9a9e66983261fc64c8b1572b7dce", { input });
+  // await writeFile("output.wav", output as Buffer);
+  return output as Buffer;
+}
 
 const command = {
     data: new ContextMenuCommandBuilder()
@@ -8,6 +26,7 @@ const command = {
         .setType(ApplicationCommandType.Message),
 
     async execute(interaction: ContextMenuCommandInteraction, api: WeightsApi) {
+        await api;
         if (!interaction.isMessageContextMenuCommand()) return;
 
         // const message = await interaction.channel?.messages.fetch(interaction.targetId);
@@ -32,7 +51,8 @@ const command = {
 
         const voiceInput = new TextInputBuilder()
             .setCustomId('voiceName')
-            .setLabel("Voice Name")
+            .setLabel("Voice Model URL")
+            .setPlaceholder("https://example.com/voice_model.zip")
             .setStyle(TextInputStyle.Short)
             .setRequired(true);
 
@@ -64,8 +84,7 @@ const command = {
                 }
 
                 try {
-                    const { result } = await api.generateFromAudioURL(voice, audioURL, pitch);
-                    const fileData = await fetch(result).then((res) => res.arrayBuffer());
+                    const fileData = await generateAudioConversion(audioURL, voice, pitch);
                     const attachmentBuilder = new AttachmentBuilder(Buffer.from(fileData), { name: "converted_audio.mp3" });
                     const attachments = [attachmentBuilder];
 
