@@ -94,7 +94,6 @@ export class WeightsApi {
       options.body = JSON.stringify(body);
     }
     const response = await fetch(url, options);
-    console.log(await response.text())
     if (response.ok) {
       return response;
     } else {
