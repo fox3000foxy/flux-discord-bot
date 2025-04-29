@@ -85,7 +85,7 @@ const command = {
 
                 try {
                     const fileData = await generateAudioConversion(audioURL, voice, pitch);
-                    const attachmentBuilder = new AttachmentBuilder(Buffer.from(fileData), { name: "converted_audio.mp3" });
+                    const attachmentBuilder = new AttachmentBuilder(fileData, { name: "converted_audio.mp3" });
                     const attachments = [attachmentBuilder];
 
                     await modalInteraction.editReply({
