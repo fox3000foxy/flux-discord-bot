@@ -106,7 +106,7 @@ client.on("interactionCreate", async (interaction: Interaction) => {
           ephemeral: true,
         });
       }
-    } else if(interaction.isUserContextMenuCommand()) {
+    } else if (interaction.isUserContextMenuCommand()) {
       const command = client.commands.get(interaction.commandName) as Command;
       if (!command) {
         console.error(
@@ -120,8 +120,7 @@ client.on("interactionCreate", async (interaction: Interaction) => {
       }
       try {
         await command.execute(interaction, api);
-      }
-      catch (error) {
+      } catch (error) {
         console.error(`Error executing ${interaction.commandName}:`, error);
         await interaction.reply({
           content: "There was an error while executing this command!",

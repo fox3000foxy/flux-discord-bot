@@ -28,14 +28,12 @@ export interface Lora {
   image: string;
 }
 
-
 export interface AudioModel {
-  id: string,
-  title: string,
-  content: string,
-  image: string,
+  id: string;
+  title: string;
+  content: string;
+  image: string;
 }
-
 
 export interface Params {
   [key: string]: object | string | null;
@@ -180,13 +178,15 @@ export class WeightsApi {
    * @param params - Object containing search query.
    * @returns Promise with search results.
    */
-  searchAudioModels = async (params: { query: string }): Promise<AudioModel[]> => {
+  searchAudioModels = async (params: {
+    query: string;
+  }): Promise<AudioModel[]> => {
     return this.callWithHealthCheck(() =>
       this.apiCall("/search-voices-models", HttpMethod.GET, params).then(
         (response) => response.json(),
       ),
     );
-  }
+  };
 
   /**
    * Generates an image based on parameters.
@@ -215,13 +215,14 @@ export class WeightsApi {
     text: string,
     pitch: number = 0,
     male: boolean = true,
-  ): Promise<{result: string}> => {
+  ): Promise<{ result: string }> => {
     return this.callWithHealthCheck(() =>
-      this.apiCall(
-        "/voice",
-        HttpMethod.POST,
-        { voiceModelName, text, pitch: pitch.toString(), male: male.toString() },
-      ).then((response) => response.json()),
+      this.apiCall("/voice", HttpMethod.POST, {
+        voiceModelName,
+        text,
+        pitch: pitch.toString(),
+        male: male.toString(),
+      }).then((response) => response.json()),
     );
   };
 
@@ -236,13 +237,13 @@ export class WeightsApi {
     voiceModelName: string,
     audioUrl: string,
     pitch: number = 0,
-  ): Promise<{result: string}> => {
+  ): Promise<{ result: string }> => {
     return this.callWithHealthCheck(() =>
-      this.apiCall(
-        "/voice",
-        HttpMethod.POST,
-        { voiceModelName, audioUrl, pitch: pitch.toString() },
-      ).then((response) => response.json()),
+      this.apiCall("/voice", HttpMethod.POST, {
+        voiceModelName,
+        audioUrl,
+        pitch: pitch.toString(),
+      }).then((response) => response.json()),
     );
   };
 
