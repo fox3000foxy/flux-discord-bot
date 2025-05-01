@@ -3,7 +3,7 @@ import {
   EmbedBuilder,
   ChatInputCommandInteraction,
 } from "discord.js";
-import { AudioModel, Lora, WeightsApi } from "../libs/weights-api";
+import { Lora, WeightsApi } from "../libs/weights-api";
 
 const command = {
   data: new SlashCommandBuilder()
@@ -24,30 +24,17 @@ const command = {
       await interaction.deferReply({ ephemeral: true });
       const startTime = Date.now();
 
-      let result = [];
-      let embeds: EmbedBuilder[];
-      if (type == "image") {
-        result = (await api.searchLoras({ query: query })) as Lora[];
-        embeds = result.map((model) =>
-          new EmbedBuilder()
-            .setTitle(model.name)
-            .setThumbnail(model.image)
-            .addFields({
-              name: "Tags",
-              value: model.tags.length > 0 ? model.tags.join(", ") : "None",
-            }),
-        );
-      } else {
-        result = (await api.searchAudioModels({
-          query: query,
-        })) as AudioModel[];
-        embeds = result.map((model) =>
-          new EmbedBuilder()
-            .setTitle(model.title)
-            .setThumbnail(model.image)
-            .setDescription(model.content),
-        );
-      }
+      const result = (await api.searchLoras({ query: query })) as Lora[];
+      const embeds = result.map((model) =>
+        new EmbedBuilder()
+          .setTitle(model.name)
+          .setThumbnail(model.image)
+          .addFields({
+            name: "Tags",
+            value: model.tags.length > 0 ? model.tags.join(", ") : "None",
+          }),
+      );
+
 
       if (!Array.isArray(result)) {
         console.error(
